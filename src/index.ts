@@ -5,19 +5,23 @@ import orderRoutes from './routers/orderRoutes';
 import userRoutes from './routers/userRoutes';
 import productRoutes from './routers/productRoutes';
 import passport from 'passport';
-import './utils/passport';
-import auth from './utils/auth';
+import './middleware/passport';
+import auth from './middleware/auth';
+import errorHandlerMiddleware from './middleware/errorHandler';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+app.use(cors());
 app.use(bodyParser.json());
-
-app.use('/order', orderRoutes);
-app.use('/user', userRoutes);
-app.use('/product', productRoutes);
-app.use('/auth', auth);
+app.use(errorHandlerMiddleware);
 app.use(passport.initialize());
+app.use('/auth', auth);
+
+app.use('/order', passport.authenticate('jwt', { session: false }), orderRoutes);
+app.use('/user',passport.authenticate('jwt', { session: false }), userRoutes);
+app.use('/product',passport.authenticate('jwt', { session: false }), productRoutes);
 
 app.get(
   "/protected",

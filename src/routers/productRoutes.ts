@@ -1,31 +1,28 @@
+import { Request, Response } from 'express';
 import express from 'express';
-import { ProductModel } from '../models';
+import { validationResult, body } from 'express-validator';
+import { ProductModel, prisma } from '../models';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-  try {
-    const products = await ProductModel.getAllProducts();
-    res.status(200).json(products);
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+router.get('/', (req: Request, res: Response) => {
+  ProductModel.getAllProducts()
+    .then((products) => res.status(200).json(products))
+    .catch((error) => res.status(500).json({ error: 'Erreur interne du serveur' }));
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', (req: Request, res: Response) => {
   const productId = parseInt(req.params.id, 10);
 
-  try {
-    const product = await ProductModel.getProductById(productId);
-
-    if (product) {
-      res.status(200).json(product);
-    } else {
-      res.status(404).json({ error: 'Product not found' });
-    }
-  } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
+  ProductModel.getProductById(productId)
+    .then((product) => {
+      if (product) {
+        res.status(200).json(product);
+      } else {
+        res.status(404).json({ error: 'Produit non trouvé' });
+      }
+    })
+    .catch((error) => res.status(500).json({ error: 'Erreur interne du serveur' }));
 });
 
 router.post('/', async (req, res) => {
@@ -41,37 +38,41 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   const productId = parseInt(req.params.id, 10);
-  const updatedProductData = req.body;
+  const { name, description, price }: { name: string; description: string; price: number } = req.body;
 
   try {
-    const updatedProduct = await ProductModel.updateProduct(productId, {
+    const updatedProduct = await prisma.product.update({
       where: { id: productId },
-      data: updatedProductData,
+      data: {
+        name,
+        description,
+        price,
+      },
     });
 
     if (updatedProduct) {
       res.status(200).json(updatedProduct);
     } else {
-      res.status(404).json({ error: 'Product not found' });
+      res.status(404).json({ error: 'Produit non trouvé' });
     }
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   const productId = parseInt(req.params.id, 10);
 
   try {
-    const deletedProduct = await ProductModel.deleteProduct(productId);
+    await prisma.product.delete({
+      where: { id: productId },
+    });
 
-    if (deletedProduct) {
-      res.status(200).json(deletedProduct);
-    } else {
-      res.status(404).json({ error: 'Product not found' });
-    }
+    res.status(204).json({ message: 'Produit supprimé' });
   } catch (error) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error(error);
+    res.status(500).json({ error: 'Erreur interne du serveur' });
   }
 });
 

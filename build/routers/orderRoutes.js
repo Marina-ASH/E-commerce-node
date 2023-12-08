@@ -54,7 +54,7 @@ router.put('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const orderId = parseInt(req.params.id, 10);
     const updatedOrderData = req.body;
     try {
-        const updatedOrder = yield models_1.OrderModel.updateOrder(orderId, {
+        const updatedOrder = yield models_1.prisma.order.update({
             where: { id: orderId },
             data: updatedOrderData,
         });
@@ -66,13 +66,16 @@ router.put('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
     }
     catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }));
 router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const orderId = parseInt(req.params.id, 10);
     try {
-        const deletedOrder = yield models_1.OrderModel.deleteOrder(orderId);
+        const deletedOrder = yield models_1.prisma.order.delete({
+            where: { id: orderId },
+        });
         if (deletedOrder) {
             res.status(200).json(deletedOrder);
         }
@@ -81,6 +84,7 @@ router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
     }
     catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 }));

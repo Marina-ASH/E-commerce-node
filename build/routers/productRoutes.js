@@ -15,30 +15,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const models_1 = require("../models");
 const router = express_1.default.Router();
-router.get('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const products = yield models_1.ProductModel.getAllProducts();
-        res.status(200).json(products);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-}));
-router.get('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/', (req, res) => {
+    models_1.ProductModel.getAllProducts()
+        .then((products) => res.status(200).json(products))
+        .catch((error) => res.status(500).json({ error: 'Erreur interne du serveur' }));
+});
+router.get('/:id', (req, res) => {
     const productId = parseInt(req.params.id, 10);
-    try {
-        const product = yield models_1.ProductModel.getProductById(productId);
+    models_1.ProductModel.getProductById(productId)
+        .then((product) => {
         if (product) {
             res.status(200).json(product);
         }
         else {
-            res.status(404).json({ error: 'Product not found' });
+            res.status(404).json({ error: 'Produit non trouvé' });
         }
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
-    }
-}));
+    })
+        .catch((error) => res.status(500).json({ error: 'Erreur interne du serveur' }));
+});
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productData = req.body;
     try {
@@ -51,36 +45,39 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 router.put('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productId = parseInt(req.params.id, 10);
-    const updatedProductData = req.body;
+    const { name, description, price } = req.body;
     try {
-        const updatedProduct = yield models_1.ProductModel.updateProduct(productId, {
+        const updatedProduct = yield models_1.prisma.product.update({
             where: { id: productId },
-            data: updatedProductData,
+            data: {
+                name,
+                description,
+                price,
+            },
         });
         if (updatedProduct) {
             res.status(200).json(updatedProduct);
         }
         else {
-            res.status(404).json({ error: 'Product not found' });
+            res.status(404).json({ error: 'Produit non trouvé' });
         }
     }
     catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error(error);
+        res.status(500).json({ error: 'Erreur interne du serveur' });
     }
 }));
 router.delete('/:id', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const productId = parseInt(req.params.id, 10);
     try {
-        const deletedProduct = yield models_1.ProductModel.deleteProduct(productId);
-        if (deletedProduct) {
-            res.status(200).json(deletedProduct);
-        }
-        else {
-            res.status(404).json({ error: 'Product not found' });
-        }
+        yield models_1.prisma.product.delete({
+            where: { id: productId },
+        });
+        res.status(204).json({ message: 'Produit supprimé' });
     }
     catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
+        console.error(error);
+        res.status(500).json({ error: 'Erreur interne du serveur' });
     }
 }));
 exports.default = router;
