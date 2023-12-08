@@ -16,7 +16,7 @@ export interface ProductType {
 
 export interface OrderType {
     id: number;
-    userId: number;
-    productId: number;
+    user: number;
+    product: number;
     quantity: number;
 }

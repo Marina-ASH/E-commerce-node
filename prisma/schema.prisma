@@ -12,24 +12,28 @@ datasource db {
 
 // Définition du modèle User
 model User {
-  id       Int      @id @default(autoincrement())
-  email    String   @unique
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
   password String
+  orders   Order[]
 }
 
 // Définition du modèle Product
 model Product {
-  id          Int      @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
   price       Float
   description String
   image       String
+  orders      Order[]
 }
 
 // Définition du modèle Order
 model Order {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
+  user      User    @relation(fields: [userId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
   userId    Int
   productId Int
-  quantity  Int
 }
