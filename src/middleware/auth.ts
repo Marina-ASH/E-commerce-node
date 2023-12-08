@@ -9,8 +9,9 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({ where: { email } });
-    
+    const users = await prisma.user.findMany();
+    const user = await prisma.user.findFirst({ where: { email } });
+    console.log(users)
     if (!user) {
       return res.status(401).json({ error: 'User not found' });
     }

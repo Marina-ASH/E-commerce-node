@@ -29,6 +29,7 @@ app.get(
   (req, res) => {
     console.log(req.user);
     res.send("Vous êtes bien connecté !");
+    return res.end();
   }
 );
 
@@ -37,9 +38,6 @@ process.on('SIGINT', () => {
     process.exit();
 });
 
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not Found' });
-});
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
